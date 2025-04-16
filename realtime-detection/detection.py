@@ -28,16 +28,13 @@ cred = credentials.Certificate(FIREBASE_KEY_PATH)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-# Load YOLOv8 models
 garbage_model = YOLO("models/best.pt")
 spill_model = YOLO("models/best_spill2.pt")
 
-# Hardcoded camera info
 CAMERA_LOCATION = "Room1 Hall"
 LATITUDE = 50.2003
 LONGITUDE = 21.0899
 
-# Open webcam or CCTV feed
 cap = cv2.VideoCapture(0)
 
 def log_detection(task_type, confidence):
@@ -45,7 +42,6 @@ def log_detection(task_type, confidence):
 
 def task_exists(task_type):
     try:
-        # /api/detections/check endpoint
         check_url = f"{BACKEND_URL.replace('/api/detections', '')}/api/detections/check"
         response = requests.get(check_url, params={
             "type": task_type,
@@ -58,14 +54,12 @@ def task_exists(task_type):
         return False
     except Exception as e:
         print(f"Error checking task existence: {e}")
-        # Fall back to direct Firestore query if API call fails
         query = db.collection("tasks") \
             .where("type", "==", task_type) \
             .where("location", "==", CAMERA_LOCATION) \
             .where("status", "in", ["Pending", "Assigned"]) \
             .stream()
         return any(query)
-
 def send_payload(payload):
     try:
         res = requests.post(BACKEND_URL, json=payload)
@@ -74,8 +68,7 @@ def send_payload(payload):
         print("Error sending payload:", e)
 
 def draw_detections(frame, results, detection_type):
-    # Colors for bounding boxes 
-    color = (0, 0, 255) if detection_type == "garbage" else (0, 255, 255)  # Red for garbage, Yellow for spill
+    color = (0, 0, 255) if detection_type == "garbage" else (0, 255, 255)
     
     for r in results:
         boxes = r.boxes
@@ -84,17 +77,13 @@ def draw_detections(frame, results, detection_type):
             x1, y1, x2, y2 = box.xyxy[0]
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
             
-  
             confidence = float(box.conf[0])
             
-            
             cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
-            
             
             label = f"{detection_type.capitalize()}: {confidence:.2f}"
             (w, h), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
             cv2.rectangle(frame, (x1, y1 - 20), (x1 + w, y1), color, -1)
-            
            
             cv2.putText(frame, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
     
@@ -131,7 +120,6 @@ while True:
                 log_detection("garbage", confidence)
                 time.sleep(5)
 
-    # Spill Detection
     results_spill = spill_model.predict(resized, conf=0.6)
     display_frame = draw_detections(display_frame, results_spill, "spill")
     
@@ -152,7 +140,6 @@ while True:
                 log_detection("spill", confidence)
                 time.sleep(5)
 
-    # Show video stream with detections
     cv2.imshow("Live CCTV Feed", display_frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
