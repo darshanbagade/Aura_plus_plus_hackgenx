@@ -1,4 +1,3 @@
-// /routes/detectionRoutes.js
 import express from 'express';
 import { db } from '../config/firebaseConfig.js';
 
@@ -15,7 +14,7 @@ function getDistance(lat1, lon1, lat2, lon2) {
       Math.cos((lat2 * Math.PI) / 180) *
       Math.sin(dLon / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c; // Distance in km
+  return R * c;
 }
 
 router.post('/', async (req, res) => {
@@ -41,7 +40,6 @@ router.post('/', async (req, res) => {
       createdAt: new Date().toISOString()
     });
 
-    // Get all crew users with location
     const crewSnapshot = await db.collection('users').where('role', '==', 'crew').get();
     const crewList = crewSnapshot.docs;
 
@@ -88,7 +86,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-//to check is task created, Checks garbage is clead or not, if not new task will not create new
 import checkExistingTask from '../controllers/detectionController.js';
 
 router.get('/check', checkExistingTask);
