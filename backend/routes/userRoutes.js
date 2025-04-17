@@ -1,3 +1,4 @@
+// /routes/userRoutes.js
 
 import express from 'express';
 import { db } from '../config/firebaseConfig.js';
