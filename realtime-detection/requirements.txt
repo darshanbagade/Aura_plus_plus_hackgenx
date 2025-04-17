@@ -7,4 +7,3 @@ python-dotenv
 # opencv-python: For video capture (CCTV or webcam).
 # requests: To send data to the backend.
 # dotenv: To handle backend URL & API key securely.
-
